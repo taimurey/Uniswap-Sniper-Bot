@@ -1,0 +1,24 @@
+{
+    "wallets": {
+        "wallet1": "0xYourWalletAddress1",
+        "wallet2": "0xYourWalletAddress2",
+        "wallet3": "0xYourWalletAddress3"
+    },
+    "tokenToBuy": "0xYourTokenAddress",
+    "slippage": 0.01,   
+    "autoSlippage": true,                             
+    "amountOfETHToBuy": {
+        "wallet1": 0.1,                              
+        "wallet2": 0.2,                                 
+        "wallet3": 0.3                             
+    },
+    "BuyExtraGas": 3,                            
+    "MinerTip": 5,                                
+    "delayBetweenEachWalletBuy": 5,
+    "numberOfRounds": 3,
+    "PrivateTransaction": true,
+    "rpc": {
+        "Url_Https": "http://your-rpc-url",
+        "Url_Wss": "wss://your-rpc-url"
+    }
+}

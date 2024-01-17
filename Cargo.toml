@@ -1,0 +1,53 @@
+[package]
+name = "eth_volume_bot"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+#ethers
+ethers = { version = "2.0.11", features = ["ws"] }
+tokio = { version = "1.11.0", features = ["full"] }
+ethers-signers = { version = "2.0.8", default-features = false }
+ethers-middleware = "2.0.8"
+ethers-providers = { version = "2.0.8" }
+secp256k1 = { version = "0.28.0", features = [
+    "alloc",
+], default-features = false }
+ethers-core = { version = "2.0.8" }
+ethers-flashbots = "0.14.0"
+
+#alloy
+alloy = "0.1.0"
+eyre = "0.6.11"
+
+
+#abi-json
+serde_json = "1.0.105"
+serde = { version = "1.0.186", features = ["derive"] }
+
+
+#lazy
+lazy_static = "1.4.0"
+
+
+#regex
+regex = "1.5.4"
+
+
+futures = "0.3.19"
+
+
+hex = "0.4.3"
+
+log = "0.4.14"
+pretty_env_logger = "0.5.0"
+ethabi = "18.0.0"
+rlp = "0.5.2"
+spinners = "4.1.1"
+
+
+#url
+url = "2.5.0"
