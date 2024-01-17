@@ -68,8 +68,6 @@ lazy_static::lazy_static! {
         pub static ref ERC20: String = fs::read_to_string("./abi/ERC20_ABI.json")
         .expect("Unable to read ERC20 ABI file");
 
-        pub static ref ERC20_MINIMAL: String = fs::read_to_string("./abi/ERC20_MINIMAL_ABI.json")
-        .expect("Unable to read ERC20 ABI file");
 
 }
 pub async fn load_uniswap_v2_mempool(
