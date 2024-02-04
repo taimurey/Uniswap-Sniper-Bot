@@ -5,10 +5,10 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::sleep;
 
-use crate::env_setup::provider::http_node_endpoint;
-use crate::txns::contracts::{
+use crate::core::contracts::{
     deadline_timestamp, load_client_middleware, load_uniswap_v2_mempool, WETH_ADDRESS,
 };
+use crate::env::provider::http_node_endpoint;
 
 use ethers::prelude::*;
 use ethers::types::{H256, U256};
@@ -31,13 +31,12 @@ pub async fn uniswap_v2_transaction(
     maxbuy_amount: U256,
     wallet: &LocalWallet,
     provider: Arc<Provider<Http>>,
-    provider_ws: Arc<Provider<Ws>>,
 ) -> eyre::Result<()> {
     let (nonce_result, gas_details_result, uniswap_v2_contract_result, client_result) = join!(
         provider.get_transaction_count(wallet.address(), None),
         provider.estimate_eip1559_fees(None),
-        load_uniswap_v2_mempool(wallet),
-        load_client_middleware(&wallet, &wallet, provider_ws.clone()),
+        load_uniswap_v2_mempool(wallet, provider.clone()),
+        load_client_middleware(&wallet, &wallet, provider.clone()),
     );
 
     let nonce = nonce_result.map_err(|e| eyre::eyre!("Failed to get transaction count: {}", e))?;
@@ -69,15 +68,11 @@ pub async fn uniswap_v2_transaction(
     let get_input_ether = get_input_ether_result
         .map_err(|e| eyre::eyre!("Failed to get amount of Intokens: {}", e))?;
 
-    println!("get_input_ether: {:?}", get_input_ether);
-
     let value_to_use = if value > get_input_ether[0] {
         get_input_ether[0]
     } else {
         value
     };
-
-    println!("value: {:?}", value);
 
     let get_output_tokens_method = uniswap_v2_contract
         .method::<_, Vec<U256>>("getAmountsOut", (value_to_use, path.clone()))
@@ -93,8 +88,6 @@ pub async fn uniswap_v2_transaction(
         Some(value) => *value,
         None => return Err(eyre::eyre!("get_output_tokens is empty")),
     };
-
-    println!("Slippage percentage: {}", slippage_percentage);
 
     // Calculate the slippage adjustment
     let slippage_multiplier = U256::from((slippage_percentage * 1e18) as u128);

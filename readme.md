@@ -38,9 +38,9 @@ Usage Example:
 ```bash
 {
     "wallets": {
-        "wallet1": "0xYourWalletAddress1",
-        "wallet2": "0xYourWalletAddress2",
-        "wallet3": "0xYourWalletAddress3"
+        "wallet1": "Wallet1PrivateKeys",
+        "wallet2": "Wallet2PrivateKeys",
+        "wallet3": "Wallet3PrivateKeys"
     },
     "tokenToBuy": "0xYourTokenAddress",
     "slippage": 0.01,   
@@ -94,12 +94,16 @@ cargo run
 
 Before running the bot, make sure to set up the `settings.json` file with your desired settings.
 
-## Logging
+## Running the bot with Loggers
 
 The bot uses the `pretty_env_logger` crate for logging. To enable logging, set the `RUST_LOG` environment variable to your desired log level. For example, to enable info level logging, use the following command:
 
-```bash
-export RUST_LOG=info
-```
-
+- ### Windows:
+    ```bash
+    $env:RUST_LOG="info"; cargo run
+    ```
+- ### Linux
+    ```bash
+    export RUST_LOG="info"; cargo run
+    ```
 

@@ -22,7 +22,7 @@ pub fn deadline_timestamp() -> u64 {
         .unwrap()
         .as_secs()
 }
-pub type ConfigContractmempool = Contract<SignerMiddleware<Provider<Ws>, LocalWallet>>;
+pub type ConfigContractmempool = Contract<SignerMiddleware<Arc<Provider<Http>>, LocalWallet>>;
 #[derive(Debug)]
 pub struct CustomError(pub String);
 
@@ -34,7 +34,7 @@ impl std::fmt::Display for CustomError {
 
 impl std::error::Error for CustomError {}
 pub type StandardMiddlewareProvider =
-    SignerMiddleware<Arc<NonceManagerMiddleware<Arc<Provider<Ws>>>>, LocalWallet>;
+    SignerMiddleware<Arc<NonceManagerMiddleware<Arc<Provider<Http>>>>, LocalWallet>;
 
 pub type BroadcasterMiddlewareProvider = SignerMiddleware<
     BroadcasterMiddleware<Arc<ethers_providers::Provider<ethers_providers::Http>>, LocalWallet>,
@@ -72,6 +72,7 @@ lazy_static::lazy_static! {
 }
 pub async fn load_uniswap_v2_mempool(
     wallet: &LocalWallet,
+    provider: Arc<Provider<Http>>,
 ) -> Result<ConfigContractmempool, Box<dyn std::error::Error + Send>> {
     let v2_router_contract_abi =
         ethabi::Contract::load(UNISWAP_V2_ROUTER_02.as_bytes()).map_err(|e| {
@@ -89,30 +90,15 @@ pub async fn load_uniswap_v2_mempool(
             ))) as Box<dyn std::error::Error + Send>
         })?;
 
-    uniswap_v2_router_mempool(wallet, v2_router_address, v2_router_contract_abi).await
+    uniswap_v2_router_mempool(wallet, v2_router_address, v2_router_contract_abi, provider).await
 }
 
 async fn uniswap_v2_router_mempool(
     wallet: &LocalWallet,
     v2_router_address: H160,
     v2_router_contract_abi: ethabi::Contract,
+    provider: Arc<Provider<Http>>,
 ) -> Result<ConfigContractmempool, Box<dyn std::error::Error + Send>> {
-    let endpoint = match crate::env_setup::provider::wss_node_endpoint() {
-        Ok(ep) => ep,
-        Err(e) => {
-            return Err(
-                Box::new(CustomError(format!("Failed to get node endpoint: {}", e)))
-                    as Box<dyn std::error::Error + Send>,
-            )
-        }
-    };
-
-    // Handle the possible error here
-    let provider = Provider::<Ws>::connect(&endpoint).await.map_err(|e| {
-        Box::new(CustomError(format!("Provider connection error: {}", e)))
-            as Box<dyn std::error::Error + Send>
-    })?;
-
     // Uniswap V2 Router for regular transactions through the mempool
     let uniswap_v2_router_mempool = Contract::new(
         v2_router_address,
@@ -126,7 +112,7 @@ async fn uniswap_v2_router_mempool(
 pub async fn load_client_middleware(
     _bundle_signer: &LocalWallet,
     wallet: &LocalWallet,
-    provider: Arc<Provider<Ws>>,
+    provider: Arc<Provider<Http>>,
 ) -> Result<StandardMiddlewareProvider, Box<dyn std::error::Error + Send>> {
     create_client_middleware(wallet, provider).await
 }
@@ -144,7 +130,7 @@ pub async fn load_flashbots_client_middleware(
 
 async fn create_client_middleware(
     wallet: &LocalWallet,
-    provider: Arc<Provider<Ws>>,
+    provider: Arc<Provider<Http>>,
 ) -> Result<StandardMiddlewareProvider, Box<dyn std::error::Error + Send>> {
     let client = NonceManagerMiddleware::new(provider, wallet.address());
 

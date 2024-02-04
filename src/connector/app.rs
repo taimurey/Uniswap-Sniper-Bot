@@ -5,13 +5,14 @@ use ethers::{
     types::U256,
 };
 use hex::decode;
+use log::info;
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
 use std::{collections::HashMap, fs::File, io::Read, sync::Arc, time::Duration};
 use tokio::time::sleep;
 
-use crate::txns::{
-    contracts::CustomError, flashbots_swap::uniswap_v2_bundler, txn_swap::uniswap_v2_transaction,
+use crate::core::{
+    contracts::CustomError, private_txn::uniswap_v2_bundler, public_txn::uniswap_v2_transaction,
 };
 
 #[allow(non_snake_case)]
@@ -44,8 +45,6 @@ pub async fn app() -> eyre::Result<(Settings, HashMap<String, LocalWallet>)> {
 
     let settings: Settings = serde_json::from_str(&contents)?;
 
-    println!("Settings: {:?}", settings);
-
     let mut wallet_secret_keys = HashMap::new();
 
     for (wallet, address) in settings.wallets.iter() {
@@ -75,17 +74,16 @@ pub async fn app() -> eyre::Result<(Settings, HashMap<String, LocalWallet>)> {
 }
 
 pub async fn run_app_and_swap() -> eyre::Result<()> {
-    let mut sp = Spinner::new(Spinners::Aesthetic, "Fetching info from json..".into());
+    info!("Fetching JSON settings...");
     let (settings, wallet_secret_keys) = match app().await {
         Ok((settings, wallet_secret_keys)) => (settings, wallet_secret_keys),
         Err(e) => {
-            sp.stop();
+            println!("Error: {}", e);
             return Err(e);
         }
     };
 
     let provider = Arc::new(Provider::<Http>::try_from(&settings.rpc.Url_Https)?);
-    let provider_ws = Arc::new(Provider::<Ws>::connect(&settings.rpc.Url_Wss).await?);
 
     for _ in 0..settings.numberOfRounds {
         for (wallet, secret_key) in wallet_secret_keys.iter() {
@@ -122,7 +120,6 @@ pub async fn run_app_and_swap() -> eyre::Result<()> {
                     maxbuy_amount,
                     secret_key,
                     Arc::clone(&provider),
-                    Arc::clone(&provider_ws),
                 )
                 .await?;
             }

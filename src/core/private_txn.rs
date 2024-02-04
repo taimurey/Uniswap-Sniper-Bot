@@ -4,7 +4,7 @@ use spinners::{Spinner, Spinners};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use crate::txns::contracts::{
+use crate::core::contracts::{
     deadline_timestamp, load_flashbots_client_middleware, load_uniswap_v2_mempool, WETH_ADDRESS,
 };
 
@@ -28,7 +28,7 @@ pub async fn uniswap_v2_bundler(
     let (nonce_result, gas_details_result, uniswap_v2_contract_result, client_result) = join!(
         provider.get_transaction_count(wallet.address(), None),
         provider.estimate_eip1559_fees(None),
-        load_uniswap_v2_mempool(wallet),
+        load_uniswap_v2_mempool(wallet, provider.clone()),
         load_flashbots_client_middleware(&wallet, wallet, provider.clone().into(),)
     );
 
